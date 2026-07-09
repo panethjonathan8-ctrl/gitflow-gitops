@@ -1,0 +1,82 @@
+name: Terraform Validate
+
+# No AWS credentials in this workflow, deliberately — matches the reference
+# pattern (GuestBook's gitops repo): -backend=false skips the S3 state
+# backend entirely, so validation never needs to authenticate to AWS. Real
+# `terraform plan` against live state only happens from a human running
+# `terragrunt plan` locally, or from gitflow-app's deploy pipeline (which
+# has its own narrowly-scoped IAM role) — not from this repo's own CI.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "terraform/**"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+
+jobs:
+  tf-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.5"
+
+      # Validates each module we write ourselves in isolation.
+      # -backend=false skips the S3 state backend — no AWS credentials needed.
+      # This checks syntax and internal consistency (types, references,
+      # required arguments), not against real infrastructure. See the script
+      # for why frontend-cdn/argocd-cdn/monitoring need special handling
+      # (they declare a configuration_aliases provider that only a Terragrunt
+      # caller normally supplies).
+      - name: Validate all modules
+        run: bash scripts/tf-validate-modules.sh
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tflint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.55.0
+
+      # tflint checks for AWS-specific best practices, deprecated arguments,
+      # and common misconfigurations. .tflint.hcl at the repo root tells it
+      # to load the AWS ruleset plugin.
+      - name: Init tflint (downloads AWS plugin)
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Lint all modules
+        run: |
+          for dir in terraform/modules/*/; do
+            echo "=== Linting $dir ==="
+            tflint --chdir="$dir"
+          done
+
+  terragrunt-hcl-check:
+    name: Terragrunt HCL format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Terragrunt
+        uses: autero1/action-terragrunt@v3
+        with:
+          terragrunt-version: 1.0.8
+
+      # Pure local file-format check — no backend, no AWS, no state read.
+      - name: Check Terragrunt HCL formatting
+        run: terragrunt hcl fmt --check --diff
+        working-directory: terraform/infrastructure

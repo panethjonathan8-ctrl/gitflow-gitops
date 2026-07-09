@@ -1,0 +1,40 @@
+# Dev-environment overrides.
+# Apply with: helm upgrade --install gitflow-analyzer . -f values.yaml -f values-dev.yaml
+
+image:
+  tag: "d88f828"
+  # This line is overwritten automatically by the CI pipeline (scripts/update-image-tag.py)
+  # on every deploy. ArgoCD detects the commit and rolls out the new image.
+
+analyzer:
+  env:
+    ENVIRONMENT: dev
+
+graphBuilder:
+  env:
+    ENVIRONMENT: dev
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::153772056450:role/gitflow-analyzer-dev-app-role
+    # IRSA: EKS injects temporary AWS credentials into pods using this role.
+    # The trust policy is scoped to system:serviceaccount:gitflow-analyzer-dev:gitflow-analyzer.
+    # Run `terraform output -module=irsa role_arn` after apply to confirm the ARN.
+
+hpa:
+  enabled: true
+
+pdb:
+  enabled: true
+
+networkPolicy:
+  enabled: true
+
+resultApi:
+  database:
+    host: "gitflow-analyzer-dev.ctu2c220ahhs.eu-west-1.rds.amazonaws.com"
+
+ingress:
+  enabled: false
+  # Dev is internal only — accessed via the pipeline smoke test and kubectl port-forward.
+  # www.gitflow.space routes to production (see values-production.yaml).

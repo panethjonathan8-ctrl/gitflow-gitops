@@ -1,0 +1,21 @@
+# Terraform provider binaries and plugins
+**/.terraform/
+
+# State files — never commit these
+*.tfstate
+*.tfstate.backup
+
+# Real variable values — never commit these
+*.tfvars
+
+# Terragrunt working directories and generated files
+**/.terragrunt-cache/
+terraform/infrastructure/**/backend.tf
+terraform/infrastructure/**/provider*.tf
+
+# Real secret values for Terragrunt — mirrors *.tfvars above
+terraform/infrastructure/secrets.hcl
+
+# OS noise
+.DS_Store
+Thumbs.db
