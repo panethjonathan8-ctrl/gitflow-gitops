@@ -88,12 +88,7 @@ variable "github_oauth_allowed_user" {
 }
 
 variable "grafana_hostname" {
-  description = "Public hostname for Grafana — must match the CloudFront alias and GoDaddy CNAME record"
+  description = "Public hostname for Grafana — must match the shared ALB Ingress host rule in modules/cluster-ingress and the Route53 record external-dns creates for it"
   type        = string
   default     = "grafana.gitflow.space"
-}
-
-variable "alb_dns_name" {
-  description = "DNS name of the shared ALB — used as the CloudFront origin for the Grafana distribution"
-  type        = string
 }

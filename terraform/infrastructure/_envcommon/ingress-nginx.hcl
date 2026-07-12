@@ -1,11 +1,10 @@
 locals {
   account = read_terragrunt_config(find_in_parent_folders("account.hcl"))
   env     = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-  secrets = read_terragrunt_config(find_in_parent_folders("secrets.hcl"))
 }
 
 terraform {
-  source = "${dirname(find_in_parent_folders("root.hcl"))}/../modules/monitoring"
+  source = "${dirname(find_in_parent_folders("root.hcl"))}/../modules/ingress-nginx"
 }
 
 dependency "eks" {
@@ -18,11 +17,8 @@ dependency "eks" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
-# The module installs Helm charts (kube-prometheus-stack, Loki, Tempo,
-# Alloy) — needs the k8s providers generated here, same reasoning as
-# _envcommon/argocd.hcl. No us-east-1 alias needed anymore now that Grafana
-# is reached via the shared ALB (modules/cluster-ingress) instead of its own
-# CloudFront distribution.
+# This module installs a Helm chart onto the cluster — needs helm/kubernetes
+# providers generated here, same reasoning as _envcommon/argocd.hcl.
 generate "k8s_providers" {
   path      = "k8s_providers.tf"
   if_exists = "overwrite_terragrunt"
@@ -48,11 +44,6 @@ EOF
 }
 
 inputs = {
-  project                    = local.account.locals.project
-  env                        = local.env.locals.env_name
-  grafana_admin_password     = local.secrets.locals.grafana_admin_password
-  github_oauth_client_id     = local.secrets.locals.github_oauth_client_id
-  github_oauth_client_secret = local.secrets.locals.github_oauth_client_secret
-  github_oauth_allowed_user  = local.secrets.locals.github_oauth_allowed_user
-  # grafana_hostname uses the module default (grafana.gitflow.space)
+  project = local.account.locals.project
+  env     = local.env.locals.env_name
 }
