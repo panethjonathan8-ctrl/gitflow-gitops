@@ -152,27 +152,16 @@ resource "helm_release" "kube_prometheus_stack" {
 
         persistence = { enabled = false }
 
-        # Grafana Ingress — joins the shared ALB IngressGroup so Grafana is
-        # reachable at https://gitflow.space/dashboard.
-        # group.order 10 means Grafana path rules are checked BEFORE the
-        # gitflow-analyzer rules (order 20), preventing /dashboard requests
-        # from accidentally matching the app's catch-all routes.
+        # Grafana Ingress — routing is now ALB -> nginx -> here (see
+        # modules/cluster-ingress for the shared ALB/TLS and
+        # modules/ingress-nginx for the controller). No AWS-specific
+        # annotations needed — nginx owns the actual routing decision.
         ingress = {
           enabled          = true
-          ingressClassName = "alb"
-          annotations = {
-            "alb.ingress.kubernetes.io/scheme"      = "internet-facing"
-            "alb.ingress.kubernetes.io/target-type" = "ip"
-            "alb.ingress.kubernetes.io/group.name"  = "gitflow-analyzer"
-            "alb.ingress.kubernetes.io/group.order" = "10"
-          }
-          path     = "/"
-          pathType = "Prefix"
-          # Host-based routing: the Grafana CloudFront distribution uses the
-          # AllViewer origin request policy which forwards the original Host
-          # header (grafana.gitflow.space) to the ALB. The ALB uses this host
-          # to match this ingress rule and route only to Grafana.
-          hosts = [var.grafana_hostname]
+          ingressClassName = "nginx"
+          path             = "/"
+          pathType         = "Prefix"
+          hosts            = [var.grafana_hostname]
         }
 
         # grafana.ini is Grafana's main config file.
