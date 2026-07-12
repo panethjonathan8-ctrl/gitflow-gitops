@@ -10,7 +10,6 @@ terraform {
 dependency "vpc" {
   config_path = "${get_terragrunt_dir()}/../vpc"
   mock_outputs = {
-    vpc_id            = "vpc-mock"
     public_subnet_ids = ["subnet-mock1", "subnet-mock2"]
   }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
@@ -67,7 +66,6 @@ EOF
 inputs = {
   project        = local.account.locals.project
   env            = local.env.locals.env_name
-  vpc_id         = dependency.vpc.outputs.vpc_id
   subnet_ids     = dependency.vpc.outputs.public_subnet_ids
   instance_types = ["t3a.large"]
   # t3a.large = 2 vCPU, 8 GB RAM — sized for Prometheus + Grafana headroom
