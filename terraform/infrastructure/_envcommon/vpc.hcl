@@ -10,10 +10,9 @@ terraform {
 }
 
 inputs = {
-  project    = local.project
-  env        = local.env_name
-  aws_region = local.account.locals.aws_region
-  vpc_cidr   = local.env.locals.vpc_cidr
+  project  = local.project
+  env      = local.env_name
+  vpc_cidr = local.env.locals.vpc_cidr
   # public_subnet_cidrs / private_subnet_cidrs left at module defaults —
   # matches the original dev/main.tf, which also left these unset.
 }

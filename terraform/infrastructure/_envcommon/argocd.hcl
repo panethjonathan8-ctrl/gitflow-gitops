@@ -54,8 +54,6 @@ inputs = {
   cluster_name = dependency.eks.outputs.cluster_name
   aws_region   = local.account.locals.aws_region
 
-  github_username = local.account.locals.github_username
-
   argocd_github_oauth_client_id     = local.secrets.locals.argocd_github_oauth_client_id
   argocd_github_oauth_client_secret = local.secrets.locals.argocd_github_oauth_client_secret
   argocd_github_allowed_user        = local.secrets.locals.argocd_github_allowed_user

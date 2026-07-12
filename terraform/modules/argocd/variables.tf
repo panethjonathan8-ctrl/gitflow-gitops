@@ -21,17 +21,6 @@ variable "argocd_chart_version" {
   # Check for newer versions at: https://artifacthub.io/packages/helm/argo/argo-cd
 }
 
-variable "github_username" {
-  description = "GitHub username — used to build the repo URL for the ArgoCD Application"
-  type        = string
-}
-
-variable "github_repo" {
-  description = "GitHub repository name — the repo ArgoCD watches for Helm chart changes"
-  type        = string
-  default     = "GitFlow"
-}
-
 variable "aws_region" {
   description = "AWS region — used to configure kubectl after the cluster is created"
   type        = string
