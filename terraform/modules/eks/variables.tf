@@ -8,11 +8,6 @@ variable "env" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "VPC ID where the cluster lives"
-  type        = string
-}
-
 variable "subnet_ids" {
   description = "List of subnet IDs for nodes and the control plane. Must span at least two AZs."
   type        = list(string)

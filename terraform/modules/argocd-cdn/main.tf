@@ -1,15 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source                = "hashicorp/aws"
-      version               = "~> 5.0"
-      configuration_aliases = [aws.us_east_1]
-      # CloudFront certificates must live in us-east-1 — AWS hard requirement.
-      # The us_east_1 alias is passed in from the calling environment.
-    }
-  }
-}
-
 # ── ACM certificate ───────────────────────────────────────────────────────────
 # Covers argocd.gitflow.space only. Must be in us-east-1 for CloudFront.
 # After apply, Terraform outputs the DNS validation CNAME — add it to GoDaddy
