@@ -38,7 +38,8 @@ resource "helm_release" "argocd" {
 
       configs = {
         params = {
-          # TLS is terminated at CloudFront — ArgoCD itself speaks plain HTTP.
+          # TLS is terminated at the ALB (see modules/cluster-ingress) —
+          # ArgoCD itself speaks plain HTTP.
           "server.insecure" = "true"
         }
         cm = {
@@ -68,22 +69,19 @@ resource "helm_release" "argocd" {
       server = {
         service = {
           # ClusterIP means the pod is only reachable inside the cluster.
-          # The ALB Ingress below becomes the only public entry point.
+          # nginx (ingressClassName below) is the only thing that talks to it
+          # directly; the shared ALB in modules/cluster-ingress talks to nginx.
           # This replaces the previous LoadBalancer (NLB) — saving ~$16/month.
           type = "ClusterIP"
         }
         ingress = {
-          enabled          = true
-          ingressClassName = "alb"
-          annotations = {
-            "alb.ingress.kubernetes.io/scheme"      = "internet-facing"
-            "alb.ingress.kubernetes.io/target-type" = "ip"
-            # Joins the shared ALB used by the app and Grafana.
-            # One ALB serves all three hostnames — no extra load balancer cost.
-            "alb.ingress.kubernetes.io/group.name"  = "gitflow-analyzer"
-            "alb.ingress.kubernetes.io/group.order" = "15"
-          }
-          hosts = [var.argocd_hostname]
+          enabled = true
+          # Routing is now ALB -> nginx -> here (see modules/cluster-ingress
+          # for the shared ALB/TLS and modules/ingress-nginx for the
+          # controller). No AWS-specific annotations needed — nginx owns the
+          # actual routing decision.
+          ingressClassName = "nginx"
+          hosts            = [var.argocd_hostname]
         }
       }
     }),
