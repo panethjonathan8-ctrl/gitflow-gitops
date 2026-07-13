@@ -18,6 +18,14 @@ dependency "eks" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
+dependency "eso" {
+  config_path                             = "${get_terragrunt_dir()}/../eso"
+  mock_outputs                            = { cluster_secret_store_name = "aws-secrets-manager" }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
+  # Ordering dependency: the ExternalSecrets this module creates need eso's
+  # ClusterSecretStore and CRDs to already exist in the cluster.
+}
+
 # The module installs Helm charts (kube-prometheus-stack, Loki, Tempo,
 # Alloy) — needs the k8s providers generated here, same reasoning as
 # _envcommon/argocd.hcl. No us-east-1 alias needed anymore now that Grafana
@@ -48,11 +56,17 @@ EOF
 }
 
 inputs = {
-  project                    = local.account.locals.project
-  env                        = local.env.locals.env_name
-  grafana_admin_password     = local.secrets.locals.grafana_admin_password
-  github_oauth_client_id     = local.secrets.locals.github_oauth_client_id
-  github_oauth_client_secret = local.secrets.locals.github_oauth_client_secret
-  github_oauth_allowed_user  = local.secrets.locals.github_oauth_allowed_user
+  project                   = local.account.locals.project
+  env                       = local.env.locals.env_name
+  cluster_secret_store      = dependency.eso.outputs.cluster_secret_store_name
+  github_oauth_client_id    = local.secrets.locals.github_oauth_client_id
+  github_oauth_allowed_user = local.secrets.locals.github_oauth_allowed_user
   # grafana_hostname uses the module default (grafana.gitflow.space)
+  # grafana_admin_password and github_oauth_client_secret no longer passed as
+  # Terraform inputs — modules/monitoring now syncs both from Secrets Manager
+  # via ExternalSecrets (see modules/eso). Set the real values once with:
+  #   aws secretsmanager put-secret-value \
+  #     --secret-id gitflow-analyzer/dev/grafana-admin-password --secret-string '<value>'
+  #   aws secretsmanager put-secret-value \
+  #     --secret-id gitflow-analyzer/dev/grafana-github-oauth-client-secret --secret-string '<value>'
 }

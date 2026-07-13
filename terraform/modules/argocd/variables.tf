@@ -37,10 +37,9 @@ variable "argocd_github_oauth_client_id" {
   type        = string
 }
 
-variable "argocd_github_oauth_client_secret" {
-  description = "GitHub OAuth App client secret — store in terraform.tfvars only, never commit this value"
+variable "cluster_secret_store" {
+  description = "Name of the ClusterSecretStore (from modules/eso) used to sync the GitHub OAuth client secret from Secrets Manager"
   type        = string
-  sensitive   = true
 }
 
 variable "argocd_github_allowed_user" {

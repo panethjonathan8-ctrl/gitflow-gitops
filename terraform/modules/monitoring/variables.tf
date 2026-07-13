@@ -8,10 +8,9 @@ variable "env" {
   type        = string
 }
 
-variable "grafana_admin_password" {
-  description = "Password for the Grafana admin user — set this in terraform.tfvars, never hardcode it"
+variable "cluster_secret_store" {
+  description = "Name of the ClusterSecretStore (from modules/eso) used to sync Grafana's admin password and OAuth client secret from Secrets Manager"
   type        = string
-  sensitive   = true
 }
 
 variable "prometheus_retention" {
@@ -74,12 +73,6 @@ variable "alloy_chart_version" {
 variable "github_oauth_client_id" {
   description = "GitHub OAuth App client ID — create the app at github.com/settings/developers, callback URL must be https://grafana.gitflow.space/login/github"
   type        = string
-}
-
-variable "github_oauth_client_secret" {
-  description = "GitHub OAuth App client secret — store in terraform.tfvars only, never commit this value"
-  type        = string
-  sensitive   = true
 }
 
 variable "github_oauth_allowed_user" {

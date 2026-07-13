@@ -18,6 +18,14 @@ dependency "eks" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
+dependency "eso" {
+  config_path                             = "${get_terragrunt_dir()}/../eso"
+  mock_outputs                            = { cluster_secret_store_name = "aws-secrets-manager" }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
+  # Ordering dependency: the ExternalSecret this module creates needs eso's
+  # ClusterSecretStore and CRDs to already exist in the cluster.
+}
+
 # The argocd module creates helm_release/kubernetes_* resources, which need
 # helm and kubernetes providers. Under plain Terraform these were defined
 # once in dev/main.tf's root and inherited by every module automatically.
@@ -49,12 +57,18 @@ EOF
 }
 
 inputs = {
-  project      = local.account.locals.project
-  env          = local.env.locals.env_name
-  cluster_name = dependency.eks.outputs.cluster_name
-  aws_region   = local.account.locals.aws_region
+  project              = local.account.locals.project
+  env                  = local.env.locals.env_name
+  cluster_name         = dependency.eks.outputs.cluster_name
+  aws_region           = local.account.locals.aws_region
+  cluster_secret_store = dependency.eso.outputs.cluster_secret_store_name
 
-  argocd_github_oauth_client_id     = local.secrets.locals.argocd_github_oauth_client_id
-  argocd_github_oauth_client_secret = local.secrets.locals.argocd_github_oauth_client_secret
-  argocd_github_allowed_user        = local.secrets.locals.argocd_github_allowed_user
+  argocd_github_oauth_client_id = local.secrets.locals.argocd_github_oauth_client_id
+  argocd_github_allowed_user    = local.secrets.locals.argocd_github_allowed_user
+  # argocd_github_oauth_client_secret no longer passed as a Terraform input —
+  # modules/argocd now syncs it from Secrets Manager via an ExternalSecret
+  # (see modules/eso). Set the real value once with:
+  #   aws secretsmanager put-secret-value \
+  #     --secret-id gitflow-analyzer/dev/argocd-github-oauth-client-secret \
+  #     --secret-string '<value>'
 }
