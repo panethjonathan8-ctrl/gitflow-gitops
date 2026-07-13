@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitflow-analyzer
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    # Deleting this Application cascades: ArgoCD deletes every child
+    # Application it manages (k8s/argocd/apps/*), and each child's own
+    # finalizer in turn deletes everything it manages. One delete tears
+    # down the whole tree.
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/panethjonathan8-ctrl/gitflow-gitops
+    targetRevision: main
+    path: k8s/argocd/apps
+    # Not recursive — apps/ is a flat directory of Application manifests,
+    # one per environment/component. Adding a new file here is enough to
+    # register it; no bootstrap script change needed.
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      # argocd namespace already exists (created by the Helm release itself).
