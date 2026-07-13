@@ -23,13 +23,15 @@ dependency "dns" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
-dependency "ingress_nginx" {
-  config_path = "${get_terragrunt_dir()}/../ingress-nginx"
+dependency "addons" {
+  config_path = "${get_terragrunt_dir()}/../addons"
   mock_outputs = {
-    namespace    = "ingress-nginx"
-    service_name = "ingress-nginx-controller"
+    ingress_nginx_namespace    = "ingress-nginx"
+    ingress_nginx_service_name = "ingress-nginx-controller"
   }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
+  # Ordering dependency: the aws-lb-controller in the addons unit must be
+  # running before this module's Ingress can actually provision an ALB.
 }
 
 # Creates a Kubernetes Ingress resource directly — needs the kubernetes
@@ -56,6 +58,6 @@ inputs = {
   argocd_hostname    = "argocd.gitflow.space"
   grafana_hostname   = "grafana.gitflow.space"
   route53_zone_id    = dependency.dns.outputs.zone_id
-  nginx_namespace    = dependency.ingress_nginx.outputs.namespace
-  nginx_service_name = dependency.ingress_nginx.outputs.service_name
+  nginx_namespace    = dependency.addons.outputs.ingress_nginx_namespace
+  nginx_service_name = dependency.addons.outputs.ingress_nginx_service_name
 }

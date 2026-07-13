@@ -8,11 +8,11 @@ terraform {
 }
 
 # Ordering only — this module doesn't need their outputs, just needs the ALB
-# to already exist by the time it runs. Matches the original
-# depends_on = [module.aws_lb_controller, module.argocd] in dev/main.tf,
-# since the ALB is created when ArgoCD syncs the Ingress, not by Terraform.
+# to already exist by the time it runs. The ALB is provisioned by
+# aws-load-balancer-controller (in ../addons) in response to the shared
+# Ingress object created by ../cluster-ingress.
 dependencies {
-  paths = ["../aws-lb-controller", "../argocd"]
+  paths = ["../addons", "../cluster-ingress"]
 }
 
 inputs = {

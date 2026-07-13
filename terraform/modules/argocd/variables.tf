@@ -38,7 +38,7 @@ variable "argocd_github_oauth_client_id" {
 }
 
 variable "cluster_secret_store" {
-  description = "Name of the ClusterSecretStore (from modules/eso) used to sync the GitHub OAuth client secret from Secrets Manager"
+  description = "Name of the ClusterSecretStore (from modules/addons) used to sync the GitHub OAuth client secret from Secrets Manager"
   type        = string
 }
 

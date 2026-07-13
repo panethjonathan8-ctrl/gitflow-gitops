@@ -4,7 +4,13 @@ locals {
 }
 
 terraform {
-  source = "${dirname(find_in_parent_folders("root.hcl"))}/../modules/external-dns"
+  source = "${dirname(find_in_parent_folders("root.hcl"))}/../modules/addons"
+}
+
+dependency "vpc" {
+  config_path                             = "${get_terragrunt_dir()}/../vpc"
+  mock_outputs                            = { vpc_id = "vpc-mock" }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
 dependency "eks" {
@@ -25,7 +31,7 @@ dependency "dns" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
-# This module installs a Helm chart onto the cluster — needs helm/kubernetes
+# This module installs Helm charts onto the cluster — needs helm/kubernetes
 # providers generated here, same reasoning as _envcommon/argocd.hcl.
 generate "k8s_providers" {
   path      = "k8s_providers.tf"
@@ -54,6 +60,9 @@ EOF
 inputs = {
   project           = local.account.locals.project
   env               = local.env.locals.env_name
+  cluster_name      = dependency.eks.outputs.cluster_name
+  vpc_id            = dependency.vpc.outputs.vpc_id
+  aws_region        = local.account.locals.aws_region
   oidc_provider_arn = dependency.eks.outputs.oidc_provider_arn
   oidc_issuer_url   = dependency.eks.outputs.cluster_oidc_issuer_url
   route53_zone_id   = dependency.dns.outputs.zone_id

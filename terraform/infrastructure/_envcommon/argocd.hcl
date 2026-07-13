@@ -18,12 +18,12 @@ dependency "eks" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
-dependency "eso" {
-  config_path                             = "${get_terragrunt_dir()}/../eso"
+dependency "addons" {
+  config_path                             = "${get_terragrunt_dir()}/../addons"
   mock_outputs                            = { cluster_secret_store_name = "aws-secrets-manager" }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
-  # Ordering dependency: the ExternalSecret this module creates needs eso's
-  # ClusterSecretStore and CRDs to already exist in the cluster.
+  # Ordering dependency: the ExternalSecret this module creates needs the
+  # addons unit's ClusterSecretStore and CRDs to already exist in the cluster.
 }
 
 # The argocd module creates helm_release/kubernetes_* resources, which need
@@ -61,13 +61,13 @@ inputs = {
   env                  = local.env.locals.env_name
   cluster_name         = dependency.eks.outputs.cluster_name
   aws_region           = local.account.locals.aws_region
-  cluster_secret_store = dependency.eso.outputs.cluster_secret_store_name
+  cluster_secret_store = dependency.addons.outputs.cluster_secret_store_name
 
   argocd_github_oauth_client_id = local.secrets.locals.argocd_github_oauth_client_id
   argocd_github_allowed_user    = local.secrets.locals.argocd_github_allowed_user
   # argocd_github_oauth_client_secret no longer passed as a Terraform input —
   # modules/argocd now syncs it from Secrets Manager via an ExternalSecret
-  # (see modules/eso). Set the real value once with:
+  # (see modules/addons). Set the real value once with:
   #   aws secretsmanager put-secret-value \
   #     --secret-id gitflow-analyzer/dev/argocd-github-oauth-client-secret \
   #     --secret-string '<value>'

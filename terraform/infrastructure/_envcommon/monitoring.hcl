@@ -18,12 +18,12 @@ dependency "eks" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
-dependency "eso" {
-  config_path                             = "${get_terragrunt_dir()}/../eso"
+dependency "addons" {
+  config_path                             = "${get_terragrunt_dir()}/../addons"
   mock_outputs                            = { cluster_secret_store_name = "aws-secrets-manager" }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
-  # Ordering dependency: the ExternalSecrets this module creates need eso's
-  # ClusterSecretStore and CRDs to already exist in the cluster.
+  # Ordering dependency: the ExternalSecrets this module creates need the
+  # addons unit's ClusterSecretStore and CRDs to already exist in the cluster.
 }
 
 # The module installs Helm charts (kube-prometheus-stack, Loki, Tempo,
@@ -58,13 +58,13 @@ EOF
 inputs = {
   project                   = local.account.locals.project
   env                       = local.env.locals.env_name
-  cluster_secret_store      = dependency.eso.outputs.cluster_secret_store_name
+  cluster_secret_store      = dependency.addons.outputs.cluster_secret_store_name
   github_oauth_client_id    = local.secrets.locals.github_oauth_client_id
   github_oauth_allowed_user = local.secrets.locals.github_oauth_allowed_user
   # grafana_hostname uses the module default (grafana.gitflow.space)
   # grafana_admin_password and github_oauth_client_secret no longer passed as
   # Terraform inputs — modules/monitoring now syncs both from Secrets Manager
-  # via ExternalSecrets (see modules/eso). Set the real values once with:
+  # via ExternalSecrets (see modules/addons). Set the real values once with:
   #   aws secretsmanager put-secret-value \
   #     --secret-id gitflow-analyzer/dev/grafana-admin-password --secret-string '<value>'
   #   aws secretsmanager put-secret-value \
