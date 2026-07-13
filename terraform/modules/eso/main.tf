@@ -125,7 +125,7 @@ resource "helm_release" "eso" {
 # landed. Same class of bootstrap-ordering limitation as modules/alb-lookup.
 resource "kubernetes_manifest" "cluster_secret_store" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ClusterSecretStore"
     metadata = {
       name = local.cluster_secret_store_name
