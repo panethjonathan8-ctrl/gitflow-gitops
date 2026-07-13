@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.0...v0.2.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* ExternalSecret/ClusterSecretStore manifests use unserved external-secrets.io/v1beta1 apiVersion ([0098a18](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/0098a18390d1e20ca5467105989151b3093af40c))
+* ExternalSecret/ClusterSecretStore manifests use unserved external-secrets.io/v1beta1 apiVersion ([a8b289c](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/a8b289ceb253082a38036b406afbe6439bb42300)), closes [#12](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/12)
+
 ## [0.2.0](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.1.0...v0.2.0) (2026-07-13)
 
 
