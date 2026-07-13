@@ -88,7 +88,7 @@ resource "kubernetes_namespace" "monitoring" {
 #     --secret-string '<value>'
 resource "kubernetes_manifest" "grafana_github_oauth" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ExternalSecret"
     metadata = {
       name      = "grafana-github-oauth"
@@ -129,7 +129,7 @@ resource "kubernetes_manifest" "grafana_github_oauth" {
 #     --secret-string '<value>'
 resource "kubernetes_manifest" "grafana_admin" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ExternalSecret"
     metadata = {
       name      = "grafana-admin"

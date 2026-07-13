@@ -113,7 +113,7 @@ resource "helm_release" "argocd" {
 #     --secret-string '<value>'
 resource "kubernetes_manifest" "argocd_github_oauth" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ExternalSecret"
     metadata = {
       name      = "argocd-github-oauth"
