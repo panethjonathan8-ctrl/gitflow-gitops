@@ -9,7 +9,7 @@ variable "env" {
 }
 
 variable "cluster_secret_store" {
-  description = "Name of the ClusterSecretStore (from modules/eso) used to sync Grafana's admin password and OAuth client secret from Secrets Manager"
+  description = "Name of the ClusterSecretStore (from modules/addons) used to sync Grafana's admin password and OAuth client secret from Secrets Manager"
   type        = string
 }
 

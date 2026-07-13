@@ -228,7 +228,7 @@ resource "helm_release" "kube_prometheus_stack" {
 
         # Grafana Ingress — routing is now ALB -> nginx -> here (see
         # modules/cluster-ingress for the shared ALB/TLS and
-        # modules/ingress-nginx for the controller). No AWS-specific
+        # modules/addons for the controller). No AWS-specific
         # annotations needed — nginx owns the actual routing decision.
         ingress = {
           enabled          = true

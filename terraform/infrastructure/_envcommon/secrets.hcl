@@ -19,7 +19,7 @@ inputs = {
   # ArgoCD and Grafana are single cluster-wide instances (not per dev/staging/
   # production namespace like the app), so their secrets live in this base
   # "dev" secrets unit rather than being duplicated into secrets-staging/
-  # secrets-production. External Secrets Operator (modules/eso) syncs these
+  # secrets-production. External Secrets Operator (modules/addons) syncs these
   # containers into Kubernetes Secrets — see modules/argocd and
   # modules/monitoring. Values are still set manually via CLI after apply,
   # same as github-token; they never touch Terraform state or git.

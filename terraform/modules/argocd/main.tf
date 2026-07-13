@@ -74,7 +74,7 @@ resource "helm_release" "argocd" {
         ingress = {
           enabled = true
           # Routing is now ALB -> nginx -> here (see modules/cluster-ingress
-          # for the shared ALB/TLS and modules/ingress-nginx for the
+          # for the shared ALB/TLS and modules/addons for the
           # controller). No AWS-specific annotations needed — nginx owns the
           # actual routing decision.
           ingressClassName = "nginx"
