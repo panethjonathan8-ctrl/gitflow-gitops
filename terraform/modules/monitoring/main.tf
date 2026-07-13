@@ -78,20 +78,88 @@ resource "kubernetes_namespace" "monitoring" {
   }
 }
 
-# ── Grafana GitHub OAuth secret ───────────────────────────────────────────────
-# The client secret must not appear in the Helm values (those end up in
-# Terraform state in plain text). Instead we store it in a Kubernetes Secret
-# and tell Grafana to read it from the environment via envFromSecret.
-# The secret key name starts with GF_ so Grafana's env-var config system
-# picks it up automatically via $__env{} in grafana.ini.
-resource "kubernetes_secret" "grafana_github_oauth" {
-  metadata {
-    name      = "grafana-github-oauth"
-    namespace = kubernetes_namespace.monitoring.metadata[0].name
+# ── Grafana GitHub OAuth secret (synced from Secrets Manager) ────────────────
+# ESO owns this Secret outright (creationPolicy = Owner) — nothing else creates
+# it. The key name starts with GF_ so Grafana's env-var config system picks it
+# up automatically via $__env{} in grafana.ini (envFromSecret below). The
+# plaintext value lives only in Secrets Manager — set it once with:
+#   aws secretsmanager put-secret-value \
+#     --secret-id ${var.project}/${var.env}/grafana-github-oauth-client-secret \
+#     --secret-string '<value>'
+resource "kubernetes_manifest" "grafana_github_oauth" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "grafana-github-oauth"
+      namespace = kubernetes_namespace.monitoring.metadata[0].name
+    }
+    spec = {
+      refreshInterval = "1h"
+      secretStoreRef = {
+        kind = "ClusterSecretStore"
+        name = var.cluster_secret_store
+      }
+      target = {
+        name           = "grafana-github-oauth"
+        creationPolicy = "Owner"
+      }
+      data = [
+        {
+          secretKey = "GF_AUTH_GITHUB_CLIENT_SECRET"
+          remoteRef = {
+            key = "${var.project}/${var.env}/grafana-github-oauth-client-secret"
+          }
+        }
+      ]
+    }
   }
 
-  data = {
-    GF_AUTH_GITHUB_CLIENT_SECRET = var.github_oauth_client_secret
+  depends_on = [kubernetes_namespace.monitoring]
+}
+
+# ── Grafana admin credentials (synced from Secrets Manager) ──────────────────
+# grafana.admin.existingSecret (below) points the chart at this Secret instead
+# of taking adminPassword as a Helm value, so the password never touches
+# Terraform state. admin-user is a static "admin" via template.data — not a
+# secret, so it doesn't need its own Secrets Manager entry. Set the real
+# password once with:
+#   aws secretsmanager put-secret-value \
+#     --secret-id ${var.project}/${var.env}/grafana-admin-password \
+#     --secret-string '<value>'
+resource "kubernetes_manifest" "grafana_admin" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "grafana-admin"
+      namespace = kubernetes_namespace.monitoring.metadata[0].name
+    }
+    spec = {
+      refreshInterval = "1h"
+      secretStoreRef = {
+        kind = "ClusterSecretStore"
+        name = var.cluster_secret_store
+      }
+      target = {
+        name           = "grafana-admin-credentials"
+        creationPolicy = "Owner"
+        template = {
+          data = {
+            "admin-user"     = "admin"
+            "admin-password" = "{{ .password }}"
+          }
+        }
+      }
+      data = [
+        {
+          secretKey = "password"
+          remoteRef = {
+            key = "${var.project}/${var.env}/grafana-admin-password"
+          }
+        }
+      ]
+    }
   }
 
   depends_on = [kubernetes_namespace.monitoring]
@@ -135,11 +203,17 @@ resource "helm_release" "kube_prometheus_stack" {
 
       # ── Grafana ─────────────────────────────────────────────────────────────
       grafana = {
-        adminPassword = var.grafana_admin_password
+        admin = {
+          # Points at the Secret the ExternalSecret above syncs from Secrets
+          # Manager, instead of an inline adminPassword value.
+          existingSecret = "grafana-admin-credentials"
+          userKey        = "admin-user"
+          passwordKey    = "admin-password"
+        }
 
-        # Load the OAuth client secret from the kubernetes_secret we created
-        # above. Every key in that secret becomes an env var in the Grafana pod.
-        # grafana.ini below references the secret via $__env{} syntax.
+        # Load the OAuth client secret from the Secret the ExternalSecret
+        # above syncs. Every key in that secret becomes an env var in the
+        # Grafana pod. grafana.ini below references it via $__env{} syntax.
         envFromSecret = "grafana-github-oauth"
 
         resources = {
@@ -278,9 +352,13 @@ resource "helm_release" "kube_prometheus_stack" {
     })
   ]
 
-  depends_on = [kubernetes_namespace.monitoring, kubernetes_secret.grafana_github_oauth]
-  # Wait for the OAuth secret to exist before Helm deploys Grafana — the pod
-  # will fail to start if it tries to read an envFromSecret that doesn't exist.
+  depends_on = [kubernetes_namespace.monitoring, kubernetes_manifest.grafana_github_oauth, kubernetes_manifest.grafana_admin]
+  # This only waits for the ExternalSecret objects to be created, not for ESO
+  # to finish syncing them into real Secrets — that sync usually completes
+  # within seconds. If Grafana's pod starts first, Kubernetes retries pod
+  # creation automatically once the referenced Secret appears, so this
+  # resolves itself without intervention (same self-healing behavior already
+  # relied on elsewhere in this module).
 }
 
 # ── Loki ─────────────────────────────────────────────────────────────────────

@@ -46,14 +46,11 @@ resource "helm_release" "argocd" {
           # Must match the public URL so Dex generates correct redirect URIs.
           url = "https://${var.argocd_hostname}"
         }
-        secret = {
-          # Injects dex.github.clientSecret into argocd-secret so the Dex
-          # config below can reference it with $dex.github.clientSecret without
-          # embedding the plaintext value in argocd-cm (a non-secret ConfigMap).
-          extra = {
-            "dex.github.clientSecret" = var.argocd_github_oauth_client_secret
-          }
-        }
+        # dex.github.clientSecret is no longer set here. It used to be passed
+        # straight from a Terraform variable into argocd-secret, which put the
+        # plaintext value in Terraform state. The ExternalSecret resource
+        # below merges it into the same argocd-secret key directly from
+        # Secrets Manager instead — see kubernetes_manifest.argocd_github_oauth.
         rbac = {
           # Only the allowed GitHub user gets admin. Everyone else gets role:''
           # which means no permissions — they see the login page but can't enter.
@@ -104,6 +101,46 @@ resource "helm_release" "argocd" {
                   redirectURI: https://${var.argocd_hostname}/api/dex/callback
     YAML
   ]
+}
+
+# ── GitHub OAuth client secret (synced from Secrets Manager) ─────────────────
+# creationPolicy = Merge adds the dex.github.clientSecret key into the
+# argocd-secret Secret that the Helm release above already owns/creates,
+# instead of ESO owning a separate Secret object. The value itself lives only
+# in Secrets Manager — set it once with:
+#   aws secretsmanager put-secret-value \
+#     --secret-id ${var.project}/${var.env}/argocd-github-oauth-client-secret \
+#     --secret-string '<value>'
+resource "kubernetes_manifest" "argocd_github_oauth" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "argocd-github-oauth"
+      namespace = kubernetes_namespace.argocd.metadata[0].name
+    }
+    spec = {
+      refreshInterval = "1h"
+      secretStoreRef = {
+        kind = "ClusterSecretStore"
+        name = var.cluster_secret_store
+      }
+      target = {
+        name           = "argocd-secret"
+        creationPolicy = "Merge"
+      }
+      data = [
+        {
+          secretKey = "dex.github.clientSecret"
+          remoteRef = {
+            key = "${var.project}/${var.env}/argocd-github-oauth-client-secret"
+          }
+        }
+      ]
+    }
+  }
+
+  depends_on = [helm_release.argocd]
 }
 
 # ── ArgoCD Application cleanup ────────────────────────────────────────────────
