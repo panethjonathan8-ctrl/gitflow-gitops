@@ -221,6 +221,29 @@ resource "aws_cloudfront_distribution" "main" {
   }
 }
 
+# ── Route53 alias records ─────────────────────────────────────────────────────
+# Points the apex domain and www subdomain at the CloudFront distribution.
+# Alias records (AWS-specific, not a real DNS record type) are free to query
+# and don't need a TTL — Route53 resolves them to CloudFront's current IPs
+# on every lookup. Without these, the ACM cert and CloudFront aliases are
+# configured correctly but nothing on the internet actually resolves to them.
+
+resource "aws_route53_record" "cdn" {
+  for_each = toset([var.domain_name, "www.${var.domain_name}"])
+
+  zone_id = var.route53_zone_id
+  name    = each.value
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.main.domain_name
+    zone_id                = aws_cloudfront_distribution.main.hosted_zone_id
+    evaluate_target_health = false
+    # CloudFront distributions don't support health-check-based alias
+    # evaluation — AWS requires this to be false for CloudFront targets.
+  }
+}
+
 # ── SSM: persist distribution ID ─────────────────────────────────────────────
 # The deploy workflow reads this instead of a hardcoded GitHub variable.
 # Every terraform apply overwrites it with the current distribution ID so
