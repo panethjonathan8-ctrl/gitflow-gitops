@@ -17,3 +17,8 @@ variable "domain_name" {
   description = "Apex domain for the CloudFront distribution (e.g. gitflow.space) — ACM certificate covers this and www.domain"
   type        = string
 }
+
+variable "route53_zone_id" {
+  description = "Route53 hosted zone ID for domain_name — used to create the alias records that point the domain at CloudFront"
+  type        = string
+}

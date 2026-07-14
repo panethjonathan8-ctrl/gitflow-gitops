@@ -28,9 +28,16 @@ dependency "alb_lookup" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
 }
 
+dependency "dns" {
+  config_path                             = "${get_terragrunt_dir()}/../dns"
+  mock_outputs                            = { zone_id = "Z0000000000000000MOCK" }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
+}
+
 inputs = {
-  project      = local.account.locals.project
-  env          = local.env.locals.env_name
-  alb_dns_name = dependency.alb_lookup.outputs.alb_dns_name
-  domain_name  = "gitflow.space"
+  project         = local.account.locals.project
+  env             = local.env.locals.env_name
+  alb_dns_name    = dependency.alb_lookup.outputs.alb_dns_name
+  domain_name     = "gitflow.space"
+  route53_zone_id = dependency.dns.outputs.zone_id
 }
