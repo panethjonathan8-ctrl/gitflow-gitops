@@ -79,6 +79,13 @@ resource "helm_release" "argocd" {
           # actual routing decision.
           ingressClassName = "nginx"
           hosts            = [var.argocd_hostname]
+          annotations = {
+            "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+            # TLS terminates at the shared ALB, not nginx, so ssl-redirect
+            # can't rely on this Ingress having its own tls block — force
+            # it explicitly. Requires use-forwarded-headers (modules/addons)
+            # so nginx trusts the ALB's X-Forwarded-Proto header.
+          }
         }
       }
     }),

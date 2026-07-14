@@ -228,14 +228,20 @@ resource "helm_release" "kube_prometheus_stack" {
 
         # Grafana Ingress — routing is now ALB -> nginx -> here (see
         # modules/cluster-ingress for the shared ALB/TLS and
-        # modules/addons for the controller). No AWS-specific
-        # annotations needed — nginx owns the actual routing decision.
+        # modules/addons for the controller).
         ingress = {
           enabled          = true
           ingressClassName = "nginx"
           path             = "/"
           pathType         = "Prefix"
           hosts            = [var.grafana_hostname]
+          annotations = {
+            "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+            # TLS terminates at the shared ALB, not nginx, so ssl-redirect
+            # can't rely on this Ingress having its own tls block — force
+            # it explicitly. Requires use-forwarded-headers (modules/addons)
+            # so nginx trusts the ALB's X-Forwarded-Proto header.
+          }
         }
 
         # grafana.ini is Grafana's main config file.

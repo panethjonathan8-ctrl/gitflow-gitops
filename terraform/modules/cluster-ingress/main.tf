@@ -60,7 +60,16 @@ resource "kubernetes_ingress_v1" "shared" {
       "alb.ingress.kubernetes.io/target-type"     = "ip"
       "alb.ingress.kubernetes.io/certificate-arn" = aws_acm_certificate_validation.cluster.certificate_arn
       "alb.ingress.kubernetes.io/listen-ports"    = jsonencode([{ "HTTP" = 80 }, { "HTTPS" = 443 }])
-      "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+      # No ssl-redirect annotation here on purpose. This ALB is shared (via
+      # group.name below) with gitflow-analyzer-production's Ingress, and
+      # AWS Load Balancer Controller implements ssl-redirect as the
+      # listener's condition-less default action — i.e. it isn't scoped to
+      # this Ingress's own hosts, it redirects everything on the shared ALB.
+      # That broke CloudFront's deliberate plain-HTTP calls to result-api
+      # (modules/frontend-cdn terminates TLS itself and proxies to the ALB
+      # over HTTP). HTTPS enforcement for ArgoCD/Grafana now happens at the
+      # nginx layer instead — see force-ssl-redirect in modules/argocd and
+      # modules/monitoring.
       # Default health check (GET / on port 80) hits nginx with no Host
       # header nginx recognizes, so nginx's default backend returns 404 and
       # the ALB marks every target unhealthy. nginx always serves a real

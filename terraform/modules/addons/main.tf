@@ -297,6 +297,14 @@ resource "helm_release" "ingress_nginx" {
           type = "ClusterIP"
         }
 
+        config = {
+          use-forwarded-headers = "true"
+          # Trust X-Forwarded-Proto from the ALB so nginx knows whether the
+          # original client request was HTTP or HTTPS — needed for
+          # force-ssl-redirect (modules/argocd, modules/monitoring) to work
+          # correctly, since TLS terminates at the ALB, not here.
+        }
+
         resources = {
           requests = { cpu = "100m", memory = "128Mi" }
           limits   = { cpu = "200m", memory = "256Mi" }
