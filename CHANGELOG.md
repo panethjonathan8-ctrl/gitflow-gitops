@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.1...v0.2.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* sequence ingress-nginx, external-dns, and eso after lb_controller ([1323f92](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/1323f925aefa6a973c58a8ba444dbf4122860bac))
+* sequence ingress-nginx, external-dns, and eso after lb_controller ([0914213](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/091421319cf8c60b3b482d6e451235d14d7c3538)), closes [#19](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/19)
+
 ## [0.2.1](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.0...v0.2.1) (2026-07-13)
 
 
