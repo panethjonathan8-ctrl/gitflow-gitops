@@ -87,6 +87,11 @@ resource "aws_db_instance" "main" {
   allocated_storage = 20
   # 20 GB is the minimum for RDS and is included in the free tier.
 
+  storage_encrypted = true
+  # Encrypts the underlying EBS volume at rest with the AWS-managed RDS KMS
+  # key. This can't be toggled on an existing instance — changing it forces
+  # Terraform to replace the instance (destroy + recreate).
+
   db_name  = var.db_name
   username = var.db_username
   password = random_password.db.result
