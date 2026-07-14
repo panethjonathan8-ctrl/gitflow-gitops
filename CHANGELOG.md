@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.3](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.2...v0.2.3) (2026-07-14)
+
+
+### Bug Fixes
+
+* move HTTPS enforcement from shared ALB to nginx ([77d8c78](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/77d8c782d7e81904f635d90bec06b544cf7c91c0))
+* move HTTPS enforcement from shared ALB to nginx ([b7f2006](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/b7f20060c471fc785135ff0f78ea2c8bc54e1a40)), closes [#22](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/22)
+
 ## [0.2.2](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.1...v0.2.2) (2026-07-14)
 
 
