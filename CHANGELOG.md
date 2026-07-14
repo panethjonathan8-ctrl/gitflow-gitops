@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.4...v0.2.5) (2026-07-14)
+
+
+### Bug Fixes
+
+* gh pr merge fails with "not a git repository" ([#29](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/29)) ([be3fa8f](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/be3fa8f3e0bdc7f4efdc928f0cadecc3223a77f1)), closes [#28](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/28)
+
 ## [0.2.4](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.3...v0.2.4) (2026-07-14)
 
 
