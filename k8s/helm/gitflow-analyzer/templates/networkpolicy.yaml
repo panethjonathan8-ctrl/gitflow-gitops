@@ -4,7 +4,7 @@
 # allows only the traffic paths that should exist:
 #   result-api → analyzer      (port 5001)
 #   result-api → graph-builder (port 5002)
-#   ALB        → result-api    (port 5000, from anywhere — ALB uses VPC IPs)
+#   ALB        → result-api    (port 5000, from anywhere in the VPC)
 #   Prometheus  → all services (scraping — from monitoring namespace)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -70,6 +70,13 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    - ports:
+    - from:
+        # Can't select the ALB by pod/namespace identity — it isn't a pod,
+        # it's an AWS-managed ENI. Scoping to the VPC CIDR still excludes
+        # anything outside it, unlike a bare "ports:" rule with no from: at
+        # all (which allows literally any pod in any namespace).
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.vpcCidr }}
+      ports:
         - port: 5000
 {{- end }}

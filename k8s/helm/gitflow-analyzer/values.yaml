@@ -134,8 +134,12 @@ networkPolicy:
   # When enabled, each service only accepts ingress from the allowed sources:
   #   analyzer      ← result-api pods, monitoring namespace (Prometheus)
   #   graph-builder ← result-api pods, monitoring namespace (Prometheus)
-  #   result-api    ← anywhere on port 5000 (ALB sends from VPC IPs)
+  #   result-api    ← the VPC CIDR (ALB targets are always VPC IPs)
   # All other ingress is implicitly denied by the policy itself.
+  vpcCidr: "10.0.0.0/16"
+  # All three environments (dev/staging/production) share the same VPC
+  # (one EKS cluster, three namespaces) — see terraform/modules/vpc — so
+  # this doesn't need a per-environment override.
 
 # ── PDB ───────────────────────────────────────────────────────────────────────
 pdb:
