@@ -305,7 +305,13 @@ resource "helm_release" "ingress_nginx" {
     })
   ]
 
-  depends_on = [kubernetes_namespace.ingress_nginx]
+  depends_on = [kubernetes_namespace.ingress_nginx, helm_release.lb_controller]
+  # Also depends on lb_controller: its mutating webhook intercepts every
+  # Service object cluster-wide (not just LoadBalancer-type), so creating
+  # this Service before the webhook pod is ready fails with "no endpoints
+  # available for service aws-load-balancer-webhook-service". helm_release
+  # defaults to wait = true, so by the time lb_controller shows as created,
+  # its webhook is actually serving.
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -439,7 +445,8 @@ resource "helm_release" "external_dns" {
     })
   ]
 
-  depends_on = [kubernetes_service_account.external_dns, aws_iam_role_policy.external_dns]
+  depends_on = [kubernetes_service_account.external_dns, aws_iam_role_policy.external_dns, helm_release.lb_controller]
+  # See helm_release.ingress_nginx for why this also depends on lb_controller.
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -546,7 +553,8 @@ resource "helm_release" "eso" {
     })
   ]
 
-  depends_on = [kubernetes_service_account.eso, aws_iam_role_policy.eso_secrets_read]
+  depends_on = [kubernetes_service_account.eso, aws_iam_role_policy.eso_secrets_read, helm_release.lb_controller]
+  # See helm_release.ingress_nginx for why this also depends on lb_controller.
 }
 
 # ── ClusterSecretStore ────────────────────────────────────────────────────────
