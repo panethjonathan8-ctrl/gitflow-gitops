@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.5...v0.2.6) (2026-07-14)
+
+
+### Bug Fixes
+
+* scope result-api NetworkPolicy to the VPC CIDR ([#32](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/32)) ([ab85fa2](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/ab85fa23040986615cae967a72d2b64ca58c73bf)), closes [#31](https://github.com/panethjonathan8-ctrl/gitflow-gitops/issues/31)
+
 ## [0.2.5](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.4...v0.2.5) (2026-07-14)
 
 
