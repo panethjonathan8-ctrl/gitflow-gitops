@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.3...v0.2.4) (2026-07-14)
+
+
+### Bug Fixes
+
+* don't crash the auto-merge step on runs with no releasable commits ([f084dbc](https://github.com/panethjonathan8-ctrl/gitflow-gitops/commit/f084dbc92713a0247cd568d1e3b9d1eb8dfe2724))
+
 ## [0.2.3](https://github.com/panethjonathan8-ctrl/gitflow-gitops/compare/v0.2.2...v0.2.3) (2026-07-14)
 
 
